@@ -1,19 +1,22 @@
-// Simple in-memory "collection" with find and findOne helpers
-class Collection {
-  constructor(items = []) {
-    this.items = items;
-  }
+// Simple in-memory collection for books
+let data = [];
 
-  find() {
-    return this.items;
-  }
-
-  findOne(query = {}) {
-    if (Object.prototype.hasOwnProperty.call(query, "id")) {
-      return this.items.find((doc) => doc.id === query.id) ?? null;
-    }
-    return null;
-  }
-}
-
-module.exports = { Collection };
+module.exports = {
+  reset(seed = []) {
+    data = seed.slice();
+  },
+  insert(doc) {
+    if (!doc || doc.id == null) throw new Error("id is required");
+    data.push(doc);
+    return doc;
+  },
+  deleteById(id) {
+    const idx = data.findIndex((b) => String(b.id) === String(id));
+    if (idx === -1) return false;
+    data.splice(idx, 1);
+    return true;
+  },
+  all() {
+    return data.slice();
+  },
+};

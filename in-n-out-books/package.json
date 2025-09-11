@@ -1,6 +1,7 @@
 {
   "name": "in-n-out-books",
   "version": "1.0.0",
+  "type": "commonjs",
   "description": "In-N-Out-Books API",
   "main": "src/app.js",
   "directories": {
@@ -8,10 +9,9 @@
   },
   "scripts": {
     "test": "jest --runInBand",
-    "start": "node ./bin/www",
-    "dev": "nodemon ./bin/www"
+    "start": "node src/server.js"
   },
-  "author": "Professor Krasso",
+  "author": "Professor Krasso, Melissa Lutz",
   "license": "MIT",
   "dependencies": {
     "ajv": "^8.12.0",
