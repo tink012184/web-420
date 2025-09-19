@@ -1,35 +1,37 @@
 const request = require("supertest");
-const app = require("../src/app");
-const db = require("../database/collection");
+const app = require("../src/app.js");
+const books = require("../database/books.js");
 
-describe("Chapter 4.1: API Tests", () => {
+describe("Chapter 5: API Tests", () => {
   beforeEach(() => {
-    db.reset([]); // fresh DB for each test
+    books._reset();
   });
 
-  test("Should return a 201-status code when adding a new book", async () => {
+  test("Should update a book and return a 204-status code.", async () => {
     const res = await request(app)
-      .post("/api/books")
-      .send({ id: 101, title: "Clean Code", author: "Robert C. Martin" });
+      .put("/api/books/1")
+      .send({ title: "Dune (Revised)", author: "Frank Herbert" });
+    expect(res.status).toEqual(204);
 
-    expect(res.status).toBe(201);
-    expect(res.body).toMatchObject({ id: 101, title: "Clean Code" });
+    // Optional: verify the update really happened
+    const updated = books.findById(1);
+    expect(updated.title).toBe("Dune (Revised)");
+    expect(updated.author).toBe("Frank Herbert");
   });
 
-  test("Should return a 400-status code when adding a new book with missing title", async () => {
+  test("Should return a 400-status code when using a non-numeric id.", async () => {
     const res = await request(app)
-      .post("/api/books")
-      .send({ id: 102, author: "Unknown" });
-
-    expect(res.status).toBe(400);
-    expect(res.body.error).toMatch(/title/i);
+      .put("/api/books/foo")
+      .send({ title: "Anything", author: "Anyone" });
+    expect(res.status).toEqual(400);
+    expect(res.body).toEqual({ error: "Input must be a number" });
   });
 
-  test("Should return a 204-status code when deleting a book", async () => {
-    // Seed a book, then delete it
-    db.insert({ id: 999, title: "Seed Book", author: "Tester" });
-
-    const res = await request(app).delete("/api/books/999");
-    expect(res.status).toBe(204);
+  test("Should return a 400-status code when updating a book with a missing title.", async () => {
+    const res = await request(app)
+      .put("/api/books/1")
+      .send({ author: "Frank Herbert" }); // no title
+    expect(res.status).toEqual(400);
+    expect(res.body).toEqual({ error: "Bad Request" });
   });
 });

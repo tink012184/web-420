@@ -1,6 +1,6 @@
-const { Collection } = require("./collection");
+const makeCollection = require("./collection");
 
-const seedBooks = [
+const seed = [
   {
     id: 1,
     title: "Anything with Nothing",
@@ -18,6 +18,6 @@ const seedBooks = [
   },
 ];
 
-const books = new Collection(seedBooks);
+const books = makeCollection(seed);
 
 module.exports = books;
