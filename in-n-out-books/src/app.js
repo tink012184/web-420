@@ -9,6 +9,10 @@ const express = require("express");
 const path = require("path");
 const db = require("../database/collection"); // shared in-memory DB for tests
 require("../database/books"); // seeds initial data
+const usersDb = require("../database/users"); // <-- mock users
+const bcrypt = require("bcryptjs"); // for password hashing
+
+// Create the Express app
 
 const app = express();
 
@@ -62,6 +66,37 @@ app.put("/api/books/:id", async (req, res, next) => {
     db.deleteById(id);
     db.insert(book);
     return res.status(204).end();
+  } catch (err) {
+    return next(err);
+  }
+});
+
+/* ========================
+ *  AUTH ROUTE (Chapter 6.1)
+ * ======================== */
+
+/**
+ * POST /api/login
+ * Body: { email, password }
+ * Success: 200 { message: "Authentication successful" }
+ * Missing email or password: 400 { message: "Bad Request" }
+ * Invalid credentials: 401 { message: "Unauthorized" }
+ */
+app.post("/api/login", async (req, res, next) => {
+  try {
+    const { email, password } = req.body || {};
+    if (!email || !password) {
+      return res.status(400).json({ message: "Bad Request" });
+    }
+    const user = usersDb.findByEmail(email);
+    if (!user) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    const ok = bcrypt.compareSync(String(password), user.passwordHash);
+    if (!ok) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    return res.status(200).json({ message: "Authentication successful" });
   } catch (err) {
     return next(err);
   }
