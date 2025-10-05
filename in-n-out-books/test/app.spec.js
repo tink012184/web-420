@@ -97,3 +97,43 @@ describe("Chapter 6: API Tests", () => {
     });
   });
 });
+
+describe("Chapter 7.1: API Tests", () => {
+  it("should return a 200 status with ‘Security questions successfully answered’ message", async () => {
+    const res = await request(app)
+      .post("/api/users/user1@example.com/verify-security-question")
+      .send([
+        { answer: "Fluffy" },
+        { answer: "Quidditch Through the Ages" },
+        { answer: "Evans" },
+      ]);
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({
+      message: "Security questions successfully answered",
+    });
+  });
+
+  it("should return a 400 status code with ‘Bad Request’ message when the request body fails ajv validation", async () => {
+    // invalid: missing 'answer' and has an additional property
+    const res = await request(app)
+      .post("/api/users/user1@example.com/verify-security-question")
+      .send([{ response: "Fluffy" }]);
+
+    expect(res.status).toBe(400);
+    expect(res.body).toEqual({ message: "Bad Request" });
+  });
+
+  it("should return a 401 status code with ‘Unauthorized’ message when the security questions are incorrect", async () => {
+    const res = await request(app)
+      .post("/api/users/user1@example.com/verify-security-question")
+      .send([
+        { answer: "Fluffy" },
+        { answer: "Quidditch Through the Ages" },
+        { answer: "Wrong Answer" }, // incorrect third answer
+      ]);
+
+    expect(res.status).toBe(401);
+    expect(res.body).toEqual({ message: "Unauthorized" });
+  });
+});

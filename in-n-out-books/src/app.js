@@ -267,6 +267,59 @@ app.get("/", (req, res) => {
   res.type("html").send(html);
 });
 
+// --- Chapter 7.1: Verify Security Questions ---
+const Ajv = require("ajv");
+const ajv = new Ajv({ allErrors: true });
+const secQSchema = {
+  type: "array",
+  items: {
+    type: "object",
+    properties: { answer: { type: "string" } },
+    required: ["answer"],
+    additionalProperties: false,
+  },
+};
+const validateSecQ = ajv.compile(secQSchema);
+app.post("/api/users/:email/verify-security-question", (req, res, next) => {
+  try {
+    if (!validateSecQ(req.body)) {
+      const err = new Error("Bad Request");
+      err.status = 400;
+      return next(err);
+    }
+    const email = String(req.params.email || "")
+      .trim()
+      .toLowerCase();
+    const user = usersDb.findByEmail(email);
+    if (!user || !Array.isArray(user.securityQuestions)) {
+      const err = new Error("Unauthorized");
+      err.status = 401;
+      return next(err);
+    }
+    const submitted = req.body;
+    if (submitted.length !== user.securityQuestions.length) {
+      const err = new Error("Unauthorized");
+      err.status = 401;
+      return next(err);
+    }
+    const ok = submitted.every((item, i) => {
+      const a = String(item.answer).trim().toLowerCase();
+      const b = String(user.securityQuestions[i].answer).trim().toLowerCase();
+      return a == b;
+    });
+    if (!ok) {
+      const err = new Error("Unauthorized");
+      err.status = 401;
+      return next(err);
+    }
+    return res
+      .status(200)
+      .json({ message: "Security questions successfully answered" });
+  } catch (err) {
+    return next(err);
+  }
+});
+
 // 404 middleware — after all routes
 app.use((req, res) => {
   res
@@ -275,16 +328,16 @@ app.use((req, res) => {
     .send("404 Not Found — The resource you requested does not exist.");
 });
 
-// 500 error-handling middleware (note 4 args)
+// 500 error-handling middleware
 app.use((err, req, res, next) => {
+  const status = err && err.status ? err.status : 500;
+  const message = err && err.message ? err.message : "Internal Server Error";
+  const payload = { message };
   const isDev =
     req.app.get("env") === "development" ||
     process.env.NODE_ENV === "development";
-  const payload = { status: 500, message: "Internal Server Error" };
   if (isDev && err && err.stack) payload.stack = err.stack;
-  const status = err && err.status ? err.status : 500;
   res.status(status).json(payload);
 });
-
 // Export the app
 module.exports = app;

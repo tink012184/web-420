@@ -10,12 +10,23 @@ const users = [
     email: "user1@example.com",
     // plaintext: secret123
     passwordHash: bcrypt.hashSync("secret123", 10),
+    // Order matters — tests submit answers in this order
+    securityQuestions: [
+      { answer: "Fluffy" },
+      { answer: "Quidditch Through the Ages" },
+      { answer: "Evans" },
+    ],
   },
   {
     id: 2,
     email: "melissa@example.com",
     // plaintext: Password123!
     passwordHash: bcrypt.hashSync("Password123!", 10),
+    securityQuestions: [
+      { answer: "Bella" },
+      { answer: "Divergent" },
+      { answer: "Lissa" },
+    ],
   },
 ];
 
