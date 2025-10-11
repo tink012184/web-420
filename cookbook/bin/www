@@ -11,7 +11,7 @@
  * Module dependencies.
  */
 
-const app = require("./src/app.js");
+const app = require("./cookbook/src/app.js");
 const http = require("http");
 
 /**
