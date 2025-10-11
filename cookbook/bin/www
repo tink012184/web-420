@@ -11,7 +11,7 @@
  * Module dependencies.
  */
 
-const app = require("../../src/app");
+const app = require("./scr/app.js");
 const http = require("http");
 
 /**
